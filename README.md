@@ -65,13 +65,19 @@ cd ING8100_TP3
 # 2. Create the environment (Python 3.11/3.12 + AxonDeepSeg v5.5.0 + model)
 bash scripts/setup_env.sh
 source .venv/bin/activate        
+ 
+# 2. Either run the entire suggested pipeline or follow the step by step
 
-# 3. Download the data from Borealis
+# 3.1 Suggested full analysis script
+bash scripts/full_analysis.sh
+
+# or 3.2 Step by step
 bash scripts/data_setup.sh
 
 # 4. Segment axons and myelin -> results/segmentation/
 python scripts/segment.py data/raw/sub-nyuMouse11_sample-0006_TEM.png
-
+python scripts/segment.py data/raw/sub-nyuMouse11_sample-0007_TEM.png
+python scripts/segment.py data/raw/sub-nyuMouse11_sample-0008_TEM.png
 # 5. Compute and clean morphometrics -> data/processed/
 python scripts/morphometrics.py results/segmentation/*_seg-axon.png
 
