@@ -67,22 +67,25 @@ def plot_diameter_distribution(df: pd.DataFrame, out_path: Path):
     plt.close(fig)
 
 
-def plot_g_ratio_vs_diameter(df: pd.DataFrame, out_path: Path):
-    """Scatter of g-ratio against axon diameter, with a linear fit to show the trend."""
+def plot_g_ratio_vs_diameter(df: pd.DataFrame, out_path: Path, deg=1):
+    """Scatter of g-ratio against axon diameter, with polynomial fits of degree 1 to deg."""
     x, y = df["axon_diameter_um"], df["g_ratio"]
-    slope, intercept = np.polyfit(x, y, deg=1)
     x_fit = np.linspace(x.min(), x.max(), 100)
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
     # Small, transparent points: with thousands of axons, overlapping points
     # would otherwise hide where most of the population lies.
     ax.scatter(x, y, s=6, alpha=0.3, color="#1f77b4", label="axons")
-    ax.plot(x_fit, slope * x_fit + intercept, color="#d62728", linewidth=2,
-            label=f"linear fit: g = {slope:.3f}·d + {intercept:.3f}  (r = {x.corr(y):.2f})")
+    for d in range(1, deg + 1):
+        coefs = np.polyfit(x, y, d)
+        r2 = 1 - np.sum((y - np.polyval(coefs, x)) ** 2) / np.sum((y - y.mean()) ** 2)
+        ax.plot(x_fit, np.polyval(coefs, x_fit), linewidth=2,
+                label=f"degree {d} fit: coefs = {np.round(coefs, 3)}  (R² = {r2:.3f})")
+
     ax.set_xlabel("Axon diameter (µm)")
     ax.set_ylabel("g-ratio")
     ax.set_title("g-ratio as a function of axon diameter")
-    ax.legend(loc="lower right")
+    ax.legend(loc="lower right", fontsize=8)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
@@ -96,6 +99,8 @@ def main():
                         help="Folder for the summary tables (default: results)")
     parser.add_argument("--figures-dir", type=Path, default=Path("figures"),
                         help="Folder for the figures (default: figures)")
+    parser.add_argument("--deg", type=int, default=1, help="Degree of the polynomial fit (default: 1)")
+
     args = parser.parse_args()
 
     df = load(args.csv)
@@ -113,7 +118,7 @@ def main():
     print(overall.round(3).to_string())
 
     plot_diameter_distribution(df, args.figures_dir / "axon_diameter_distribution.png")
-    plot_g_ratio_vs_diameter(df, args.figures_dir / "g_ratio_vs_diameter.png")
+    plot_g_ratio_vs_diameter(df, args.figures_dir / "g_ratio_vs_diameter.png", args.deg)
     print(f"\nTables saved in {args.results_dir}/, figures saved in {args.figures_dir}/")
 
 
