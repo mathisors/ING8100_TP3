@@ -109,7 +109,6 @@ python scripts/analyze.py data/processed/*_morphometrics_clean.csv
 
 - Storage: about 2 GB for the virtual environment and the ADS model, plus about 6 MB for the image
 - Runtime: about 15 min on CPU (MacBook) for the segmentation of one image; the other steps take a few seconds
-- No GPU required (`segment.py --gpu-id 0` to use one)
 
 ## Code Description
 
